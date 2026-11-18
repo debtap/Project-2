@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>About | Mini Calculator</title>
+  <style>
+    :root { color-scheme: light; font-family: system-ui, sans-serif; }
+    body { min-height: 100vh; margin: 0; display: grid; place-items: center; background: #f2f5fb; color: #182235; }
+    main { width: min(520px, calc(100% - 32px)); padding: 30px; box-sizing: border-box; background: white; border: 1px solid #e0e6f0; border-radius: 18px; box-shadow: 0 14px 40px #243b6418; }
+    h1 { margin: 0 0 12px; font-size: 1.6rem; }
+    p, li { color: #56647a; line-height: 1.65; }
+    ul { padding-left: 22px; }
+    nav { margin-top: 22px; padding-top: 16px; border-top: 1px solid #e8edf4; display: flex; gap: 18px; }
+    a { color: #285fce; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>About the Mini Calculator</h1>
+    <p>This is a simple browser based calculator for evaluating everyday arithmetic expressions. Type an expression, select <strong>Calculate</strong>, and the answer appears on the page.</p>
+    <p>The calculator runs its calculations in Python using Pyodide. It supports:</p>
+    <ul>
+      <li>Addition, subtraction, multiplication, and division</li>
+      <li>Floor division and remainders</li>
+      <li>Parentheses, positive and negative numbers, and powers</li>
+    </ul>
+    <p>For safety, the calculator accepts arithmetic expressions only; it does not run general Python code.</p>
+    <nav aria-label="Main navigation">
+      <a href="index.html">Calculator</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+  </main>
+</body>
+</html>

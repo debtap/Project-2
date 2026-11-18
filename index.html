@@ -20,6 +20,9 @@
     #result.error { color: #b42318; font-size: .95rem; font-weight: 500; }
     .hint { margin: 8px 0 0; font-size: .82rem; color: #68748a; }
     #status { margin-top: 14px; font-size: .8rem; color: #68748a; }
+    nav { margin-top: 20px; padding-top: 14px; border-top: 1px solid #e8edf4; display: flex; gap: 18px; font-size: .9rem; }
+    a { color: #285fce; text-decoration: none; }
+    a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
@@ -34,6 +37,10 @@
     </form>
     <div id="result" aria-live="polite"></div>
     <div id="status">Starting Python runtime…</div>
+    <nav aria-label="Main navigation">
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+    </nav>
   </main>
 
   <script type="module">
