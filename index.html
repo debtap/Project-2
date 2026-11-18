@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mini Python Calculator</title>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.27.7/full/pyodide.js"></script>
+  <style>
+    :root { color-scheme: light; font-family: system-ui, sans-serif; }
+    body { min-height: 100vh; margin: 0; display: grid; place-items: center; background: #f2f5fb; color: #182235; }
+    main { width: min(390px, calc(100% - 32px)); padding: 28px; box-sizing: border-box; background: white; border: 1px solid #e0e6f0; border-radius: 18px; box-shadow: 0 14px 40px #243b6418; }
+    h1 { margin: 0 0 6px; font-size: 1.45rem; }
+    p { margin: 0 0 22px; color: #68748a; font-size: .94rem; }
+    label { display: block; margin-bottom: 8px; font-weight: 650; }
+    input { width: 100%; box-sizing: border-box; padding: 13px 14px; border: 1px solid #cbd4e2; border-radius: 10px; font: 1.1rem ui-monospace, monospace; }
+    input:focus { outline: 3px solid #dce8ff; border-color: #527fda; }
+    button { width: 100%; margin-top: 12px; padding: 12px; border: 0; border-radius: 10px; background: #285fce; color: white; font: inherit; font-weight: 700; cursor: pointer; }
+    button:hover { background: #1f4fae; }
+    #result { min-height: 28px; margin-top: 18px; font-size: 1.15rem; font-weight: 700; overflow-wrap: anywhere; }
+    #result.error { color: #b42318; font-size: .95rem; font-weight: 500; }
+    .hint { margin: 8px 0 0; font-size: .82rem; color: #68748a; }
+    #status { margin-top: 14px; font-size: .8rem; color: #68748a; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Mini Calculator</h1>
+    <p>Enter an arithmetic expression and calculate it with Python.</p>
+    <form id="calculator">
+      <label for="expression">Expression</label>
+      <input id="expression" autocomplete="off" placeholder="e.g. (12 + 8) / 4" required>
+      <div class="hint">Use +, −, ×, ÷, parentheses, and powers (**).</div>
+      <button id="calculate" type="submit" disabled>Loading Python…</button>
+    </form>
+    <div id="result" aria-live="polite"></div>
+    <div id="status">Starting Python runtime…</div>
+  </main>
+
+  <script type="module">
+    const button = document.querySelector('#calculate');
+    const status = document.querySelector('#status');
+    const result = document.querySelector('#result');
+    const input = document.querySelector('#expression');
+    let pyodide;
+
+    async function start() {
+      try {
+        pyodide = await loadPyodide();
+        await pyodide.runPythonAsync(`
+import ast
+import operator as op
+
+_binary = {
+    ast.Add: op.add, ast.Sub: op.sub, ast.Mult: op.mul,
+    ast.Div: op.truediv, ast.FloorDiv: op.floordiv,
+    ast.Mod: op.mod, ast.Pow: op.pow,
+}
+_unary = {ast.UAdd: op.pos, ast.USub: op.neg}
+
+def calculate(expression):
+    """Evaluate basic arithmetic only; never execute arbitrary Python."""
+    tree = ast.parse(expression, mode="eval")
+    def visit(node):
+        if isinstance(node, ast.Expression):
+            return visit(node.body)
+        if isinstance(node, ast.Constant) and type(node.value) in (int, float):
+            return node.value
+        if isinstance(node, ast.BinOp) and type(node.op) in _binary:
+            left, right = visit(node.left), visit(node.right)
+            if isinstance(node.op, ast.Pow) and abs(right) > 1000:
+                raise ValueError("Exponent is too large.")
+            return _binary[type(node.op)](left, right)
+        if isinstance(node, ast.UnaryOp) and type(node.op) in _unary:
+            return _unary[type(node.op)](visit(node.operand))
+        raise ValueError("Only numbers and basic arithmetic operators are allowed.")
+    value = visit(tree)
+    if isinstance(value, float) and not __import__("math").isfinite(value):
+        raise ValueError("The result is not a finite number.")
+    return value
+        `);
+        button.disabled = false;
+        button.textContent = 'Calculate';
+        status.textContent = 'Python is ready.';
+      } catch (error) {
+        status.textContent = 'Could not load Python. Check your internet connection and reload.';
+        console.error(error);
+      }
+    }
+
+    document.querySelector('#calculator').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      result.classList.remove('error');
+      try {
+        pyodide.globals.set('user_expression', input.value);
+        const answer = await pyodide.runPythonAsync('calculate(user_expression)');
+        result.textContent = `Result: ${answer}`;
+      } catch (error) {
+        result.classList.add('error');
+        result.textContent = `Error: ${error.message.split(' at ').at(0)}`;
+      }
+    });
+
+    start();
+  </script>
+</body>
+</html>
